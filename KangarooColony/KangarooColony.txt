@@ -1,0 +1,190 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package kangaroocolony;
+
+import java.util.ArrayList;
+import java.util.LinkedList;
+
+/**
+ *
+ * @author fahad
+ */
+public class KangarooColony {
+
+    /**
+     * @param args the command line arguments
+     */
+    public static void main(String[] args) {
+        // TODO code application logic here
+
+        Graph<Point, Integer> graph = new Graph<>();
+
+        Point p1 = new Point(7, 30, 1);     // 7 is the max kangarooos allowed at the point. 30 is available food resource. 1 is the point id
+        Kangaroo k1 = new Kangaroo(p1.getPointId(), 'M', 5);  // p1.getPointId() is the currentPos of the kangaroo k1, M is the gender and 5 is the food in its pouch
+        Kangaroo k2 = new Kangaroo(p1.getPointId(), 'F', 7);
+        Kangaroo k3 = new Kangaroo(p1.getPointId(), 'M', 3);
+        p1.addKangaroo(k1); // this will add the kangaroos to the point
+        p1.addKangaroo(k2);
+        p1.addKangaroo(k3);
+
+        Point p2 = new Point(10, 50, 2);
+        Kangaroo k4 = new Kangaroo(p2.getPointId(), 'M', 10);
+        Kangaroo k5 = new Kangaroo(p2.getPointId(), 'F', 11);
+        p2.addKangaroo(k4);
+        p2.addKangaroo(k5);
+
+        Point p3 = new Point(5, 10, 3);
+        Kangaroo k6 = new Kangaroo(p3.getPointId(), 'F', 7);
+        p3.addKangaroo(k6);
+
+        Point p4 = new Point(4, 50, 4);
+        Kangaroo k7 = new Kangaroo(p4.getPointId(), 'F', 7);
+        Kangaroo k8 = new Kangaroo(p4.getPointId(), 'F', 7);
+        Kangaroo k9 = new Kangaroo(p4.getPointId(), 'M', 3);
+        p4.addKangaroo(k7);
+        p4.addKangaroo(k8);
+        p4.addKangaroo(k9);
+
+        graph.addVertice(p1);
+        graph.addVertice(p2);
+        graph.addVertice(p3);
+        graph.addVertice(p4);
+
+        graph.addEdge(p1, p4, 10); //10 is the height of the obstacle. this will add edge from point p1 to point p4
+        graph.addEdge(p1, p2, 7);
+        graph.addEdge(p2, p3, 15);
+        graph.addEdge(p3, p4, 5);
+
+//        graph.showGraph();  //show all the points and the edges which connect the points
+//        System.out.println("adjacent elements of point 1 : ");
+//        ArrayList a = graph.getAdjacent(p1);  // get all adjacent elements of point 1
+//        for(int i=0; i<a.size(); i++){
+//            System.out.println(a.get(i) + " ");
+//        }
+        System.out.println("The original position of kangaroos");
+        p1.showKangaroos();
+        p2.showKangaroos();
+        p3.showKangaroos();
+        p4.showKangaroos();
+        System.out.println("");
+        LinkedList<GraphNode> vertices = graph.getVertices();
+        int threshold = 3;        //threshold size determined by user
+        for (int i = 0; i < vertices.size(); i++) {
+            Point p = (Point) vertices.get(i).getVertice();
+            LinkedList<Kangaroo> kangaroos = p.getKangaroosInPoint();
+            for (int j = 0; j < kangaroos.size(); j++) {
+                //System.out.println("Gender: " + kangaroos.get(j).getGender());
+                if (kangaroos.get(j).getGender() == 'M') {             // check if kangaroo is male or not
+                    Point ptgotMale = (Point) vertices.get(i).getVertice();  // store the point got male kangaroo
+                    System.out.println("-----------------------------------------------------------------------------------------");
+		    System.out.println("Male kangaroo detected: " + ptgotMale);
+                    ArrayList<Point> c = graph.getAdjacent(ptgotMale);     //ArrayList that stores adjacent points of the point which contains male kangaroo        
+                    LinkedList<Integer> food = new LinkedList<>();         // LinkedList storing amount of food for each adjacent points
+
+                    int max = 0, femaleInPoint = 0;
+//                    int foodNeeded = 2;    //to be changed to calculations later
+                    Point chosenPoint = null;
+                    Double foodNeeded = 0.0;
+                    //initially (when kangaroos are born)
+                    int hour=0;
+                  ->  //set the time elapsed to be 48 hours, 2 days
+                    //for every hour ,food for every locations will be regenerated, NO upper limit for food to be stored in a location
+                    while (hour<=48) {
+                        hour++;
+                        for (Location area: zone) {
+                            area.regenerateFoodPerHour();
+                        }
+                    }
+                    System.out.println("Currently evaluting adjacent point...");
+                    for (int k = 0; k < c.size(); k++) {
+                        Point pointadj = c.get(k);
+                        foodNeeded = graph.getWeight(p , pointadj)+(0.5*kangaroos.get(j).getPouchCapacity());    //Food needed calculations
+                        food.add(pointadj.getFood());
+                        //System.out.println("Current evaluating adjacent point: " + c.get(k));
+                        //System.out.println(food);        //show food linked list
+                        if (c.size() >= 0) {                // to check if there are adjacent points or not stored in array list c
+                            for (int l = 0; l < food.size(); l++) {
+                                int first = food.get(l);
+                                int female = c.get(l).numberOfFemale();
+                                if (first >= max) {
+                                    if (first == max) {     //if food are equal, check for female kangaroos
+                                        if (female > femaleInPoint) {      //to check which points have more female kangaroos
+                                            femaleInPoint = female;
+                                            chosenPoint = c.get(l);
+                                        }
+                                    } else {                        //to check which points have more food 
+                                        max = first;
+                                        femaleInPoint = female;
+                                        chosenPoint = c.get(l);
+                                    }     //chosenPoint is the point kangaroo will move to 
+                                }
+                            }
+                        }
+                    }
+
+                    if (!c.isEmpty()) {
+                        //System.out.println("Max food is: " + max);
+                        //System.out.println("Female in choosen point: " + femaleInPoint);
+                        System.out.println("Choosen point is: " + chosenPoint);
+
+                        if (chosenPoint.getKangarooNumber() >= threshold) {    //if true, threshold reached, colony exist
+                            // check if kangaroo food is enough to give the kangaroos in the colony and the kangaroos in the point is less than maximum number of kangaroos
+                            if ((kangaroos.get(j).getPouchCapacity() >= chosenPoint.getKangarooNumber()) && (chosenPoint.getKangarooNumber() < chosenPoint.getMaxKangaroos())) {
+                                chosenPoint.addKangaroo(kangaroos.get(j));
+                                kangaroos.get(j).setCurrentPos(chosenPoint.getPointId());
+                                ptgotMale.moveKangaroo(kangaroos.get(j));
+                                
+                            } else if (c.size() > 1) {   //if the previous condition not fulfill, the kangaroo will search on the other adjacent point again to see if its possible to join or not
+                                for (int m = 1; m < c.size(); m++) {
+                                    chosenPoint = c.get(m);        //to get other available adjacent points in array list c
+                                    System.out.println("Changing choosen point: " + chosenPoint);
+                                    if (chosenPoint.getKangarooNumber() >= threshold) {    //if the new chosen point got 
+                                        if ((kangaroos.get(j).getPouchCapacity() >= chosenPoint.getKangarooNumber()) && (chosenPoint.getKangarooNumber() < chosenPoint.getMaxKangaroos())) {
+                                            chosenPoint.addKangaroo(kangaroos.get(j));
+					    kangaroos.get(j).setCurrentPos(chosenPoint.getPointId());
+                                            ptgotMale.moveKangaroo(kangaroos.get(j));
+                                        }
+                                    } else {   //if threshold not reached, check food enough or not
+                                        if (chosenPoint.getFood() >= foodNeeded) {     //if enough food, move?
+                                            chosenPoint.addKangaroo(kangaroos.get(j));
+				            kangaroos.get(j).setCurrentPos(chosenPoint.getPointId());
+                                            ptgotMale.moveKangaroo(kangaroos.get(j));
+                                        }
+
+                                    }
+                                }
+
+                            } else if (c.size() == 1) {
+                                System.out.println("No movement as no adjacent points.\n");
+                            }
+                        } else {   //if threshold not reached, check food enough or not
+                            if (chosenPoint.getFood() >= foodNeeded) {     //if enough food
+                                chosenPoint.addKangaroo(kangaroos.get(j));
+				kangaroos.get(j).setCurrentPos(chosenPoint.getPointId());
+                                ptgotMale.moveKangaroo(kangaroos.get(j));
+                            }
+
+                        }
+
+                        System.out.println("\nNew position of kangaroos: ");
+                        p1.showKangaroos();
+                        p2.showKangaroos();
+                        p3.showKangaroos();
+                        p4.showKangaroos();
+                        System.out.println("");
+                        
+                    } else {
+                        System.out.println("No movement as no adjacent points.\n");
+                    }
+
+                }
+            }
+        }
+
+    }
+
+}
+
